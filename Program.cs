@@ -3,35 +3,36 @@ using Microsoft.AspNetCore.Mvc;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-app.MapGet("/md_parves2002_gmail_com", ([FromQuery] string x, [FromQuery] string y) =>
-{
-    if (!long.TryParse(x, out long firstNumber) || firstNumber <= 0 ||
-        !long.TryParse(y, out long secondNumber) || secondNumber <= 0)
-    {
-        return Results.Content("NaN", "text/plain");
-    }
-
-    return Results.Content(
-        FindLcm(firstNumber, secondNumber).ToString(),
-        "text/plain"
-    );
-});
+app.MapGet("/md_parves2002_gmail_com", HandleLcmRequest);
+app.MapGet("/md_parves2002_gmail_com/", HandleLcmRequest);
 
 app.Run();
 
-static long FindGcd(long a, long b)
+static IResult HandleLcmRequest([FromQuery] string? x, [FromQuery] string? y)
+{
+    if (string.IsNullOrWhiteSpace(x) || string.IsNullOrWhiteSpace(y) ||
+        !long.TryParse(x, out long numX) || numX <= 0 ||
+        !long.TryParse(y, out long numY) || numY <= 0)
+    {
+        return Results.Text("NaN", "text/plain");
+    }
+
+    long lcm = CalculateLCM(numX, numY);
+    return Results.Text(lcm.ToString(), "text/plain");
+}
+
+static long CalculateGCD(long a, long b)
 {
     while (b != 0)
     {
-        long remainder = a % b;
-        a = b;
-        b = remainder;
+        long temp = b;
+        b = a % b;
+        a = temp;
     }
-
     return a;
 }
 
-static long FindLcm(long a, long b)
+static long CalculateLCM(long a, long b)
 {
-    return (a / FindGcd(a, b)) * b;
+    return (a / CalculateGCD(a, b)) * b;
 }
